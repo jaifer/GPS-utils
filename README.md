@@ -1,2 +1,37 @@
 # GPS-utils
 Miscellaneous GPS stuff
+## process_NMEA.py
+**Convert NMEA sentences to csv format and convert lat/lon coordinates to UTM coordinates.**
+
+For each GPS data point, NMEA protocol sends several data streams with different information. This script processes all the sentences and it generates a csv file with one row per data point.
+It also converts from latitude and longitude coordinates to UTM coordinates.
+
+*Example of input file:*
+```
+$GPRMC,123652.80,A,5323.52968,N,00112.29680,W,3.873,35.82,080314,,,D*4E
+$GPVTG,35.82,T,,M,2.873,N,5.320,K,D*0E
+$GPGGA,123652.80,5323.52968,N,00112.29680,W,2,10,1.03,-0.3,M,49.9,M,,0000*6F
+$GPGSA,A,3,10,07,09,02,05,13,26,04,08,28,,,1.65,1.03,1.29*00
+$GPGSV,4,1,15,02,34,228,50,04,10,186,47,05,58,304,41,07,51,054,46*73
+$GPGSV,4,2,15,08,75,119,45,09,78,160,48,10,55,136,45,13,16,073,36*74
+$GPGSV,4,3,15,15,03,270,43,26,37,273,41,28,17,139,37,30,26,047,42*7D
+$GPGSV,4,4,15,33,38,197,43,39,33,141,40,49,,,44*79
+$GPGLL,5323.52968,N,00112.29680,W,123652.80,A,D*75
+$GPRMC,123653.00,A,5323.52981,N,00112.29666,W,2.960,37.51,080314,,,D*47
+$GPVTG,37.51,T,,M,2.960,N,5.481,K,D*0D
+$GPGGA,123653.00,5323.52981,N,00112.29666,W,2,10,1.03,-0.3,M,49.9,M,,0000*69
+$GPGSA,A,3,10,07,09,02,05,13,26,04,08,28,,,1.65,1.03,1.29*00
+$GPGSV,4,1,15,02,34,228,49,04,10,186,46,05,58,304,42,07,51,054,46*79
+$GPGSV,4,2,15,08,75,119,47,09,78,160,48,10,55,136,46,13,16,073,38*7B
+$GPGSV,4,3,15,15,03,270,43,26,37,273,38,28,17,139,31,30,26,047,42*75
+$GPGSV,4,4,15,33,38,197,42,39,33,141,40,49,,,45*79
+...
+```
+
+*And its output file:*
+```
+Time,lat,lon,quality,num_sat,dop,zone,lat(m),lon(m)
+123652.80,5323.52968N,00112.29680W,2,10,1.03,30,619366.69752496,5917397.899103259
+123653.00,5323.52981N,00112.29666W,2,10,1.03,30,619366.846608199,5917398.144012054
+...
+```
