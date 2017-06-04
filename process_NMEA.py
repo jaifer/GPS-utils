@@ -25,32 +25,6 @@ RMC_valid = []
 RMC_dir = []
 RMC_speed = []
 
-#WGS 84
-a = 6378137.0 #DatumEqRad
-f = 1.0/298.2572236 #DatumFlat
-k0 = 0.9996 #scale on central meridian
-b = a*(1-f) #polar axis
-e = math.sqrt(1-(b/a)*(b/a)) #eccentricity
-drad = math.pi/180.0
-phi = 0 #latitude (north +, south -), but uses phi in reference
-e0 = e/math.sqrt(1 - e*e) # e prime in reference
-
-latd = 0 #latitude in degrees
-N = a/math.sqrt(1-math.pow(e*math.sin(phi),2))
-T = math.pow(math.tan(phi),2)
-C = math.pow(e*math.cos(phi),2)
-lng = 0#;//Longitude (e = +, w = -) - can't use long - reserved word
-lng0 = 0#;//longitude of central meridian
-lngd = 0#;//longitude in degrees
-M = 0#;//M requires calculation
-x = 0#;//x coordinate
-y = 0#;//y coordinate
-k = 1#;//local scale
-utmz = 30#;//utm zone
-zcm = 0#;//zone central meridian
-DigraphLetrsE = "ABCDEFGHJKLMNPQRSTUVWXYZ"
-DigraphLetrsN = "ABCDEFGHJKLMNPQRSTUV"
-
 def LatLonToUTM(lat, lon):
     if ((lat == '') or (lon == '')):
         return 0, 0, 0
@@ -65,78 +39,6 @@ def LatLonToUTM(lat, lon):
 
     EASTING, NORTHING, ZONE_NUM, ZONE_LETTER = utm.from_latlon(latd, lngd)
     return ZONE_NUM, EASTING, NORTHING
-
-# http://www.uwgb.edu/dutchs/UsefulData/ConvertUTMNoOZ.HTM
-# Convert Latitude and Longitude to UTM
-def GeogToUTM(lat, lon):
-    # lat = 4807.038N   Latitude 48 deg 07.038' N
-    # lon = 01131.000W  Longitude 11 deg 31.000' W
-    if ((lat == '') or (lon == '')):
-        return 0, 0, 0
-    lat_d = lat.split('.')
-    lon_d = lon.split('.')
-    latd = int(lat_d[0][:-2]) + int(lat_d[0][-2:])/60.0 + float('0.'+lat_d[1][:-1])/60.0
-    lngd = int(lon_d[0][:-2]) + int(lon_d[0][-2:])/60.0 + float('0.'+lon_d[1][:-1])/60.0
-    if (lat[-1] == 'S'):
-        latd = (-1)*latd
-    if (lon[-1] == 'W'):
-        lngd = (-1)*lngd
-
-    if ((latd <-90) or (latd> 90)):
-        print("Latitude must be between -90 and 90")
-        quit()
-    if ((lngd <-180) or (lngd > 180)):
-        print("Latitude must be between -180 and 180")
-
-    phi = latd*drad #;//Convert latitude to radians
-    lng = lngd*drad #;//Convert longitude to radians
-    utmz = 1 + math.floor((lngd+180)/6) #;//calculate utm zone
-    latz = 0 #;//Latitude zone: A-B S of -80, C-W -80 to +72, X 72-84, Y,Z N of 84
-    if ((latd > -80) and (latd < 72)):
-        latz = math.floor((latd + 80)/8)+2
-    if ((latd > 72) and (latd < 84)):
-        latz = 21
-    if (latd > 84):
-        latz = 23
-        
-    zcm = 3 + 6*(utmz-1) - 180 #;//Central meridian of zone
-
-    #Calculate Intermediate Terms
-    esq = (1 - (b/a)*(b/a)) #;//e squared for use in expansions
-    e0sq = e*e/(1-e*e) #;// e0 squared - always even powers
-    N = a/math.sqrt(1-math.pow(e*math.sin(phi),2))
-    T = math.pow(math.tan(phi),2)
-    C = e0sq*math.pow(math.cos(phi),2)
-    A = (lngd-zcm)*drad*math.cos(phi)
-    M = phi*(1 - esq*(1/4 + esq*(3/64 + 5*esq/256)))
-    M = M - math.sin(2*phi)*(esq*(3/8 + esq*(3/32 + 45*esq/1024)))
-    M = M + math.sin(4*phi)*(esq*esq*(15/256 + esq*45/1024))
-    M = M - math.sin(6*phi)*(esq*esq*esq*(35/3072))
-    M = M*a #;//Arc length along standard meridian
-    M0 = 0 #;//M0 is M for some origin latitude other than zero. Not needed for standard UTM
-
-    # Calculate UTM Values
-    x = k0*N*A*(1 + A*A*((1-T+C)/6.0 + A*A*(5 - 18*T + T*T + 72*C -58*e0sq)/120.0)) #;//Easting relative to CM
-    x=x+500000 #;//Easting standard 
-    y = k0*(M - M0 + N*math.tan(phi)*(A*A*(1.0/2.0 + A*A*((5 - T + 9*C + 4*C*C)/24.0 + A*A*(61 - 58*T + T*T + 600*C - 330*e0sq)/720.0)))) #;//Northing from equator
-    yg = y + 10000000 #;//yg = y global, from S. Pole
-    if (y < 0):
-        y = 10000000+y
-
-    ## Output into UTM Boxes
-    zone = utmz
-    easting = math.floor(10*x)/10 # meters
-    northing = math.floor(10*y)/10 # meters
-    if (phi<0):
-        south =true
-    return zone, easting, northing
-    # NATO UTM
-#       LonZone = utmz;
-#       LatZone = DigraphLetrsE[latz];
-#       easting = Math.round(10*(x-100000*Math.floor(x/100000)))/10;
-#       northing = Math.round(10*(y-100000*Math.floor(y/100000)))/10;
-#       MakeDigraph();
-#       document.getElementById("UTMDgBox2").value = Digraph;
 
 #Velocity made good.
 #$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48
@@ -249,11 +151,7 @@ def WriteProcData(basefilename):
     fout = open(basefilename + '_GGA.csv', 'w')
     fout.write('Time,lat,lon,quality,num_sat,dop,zone,lat(m),lon(m)\n')
     for i in range(len(GGA_time)):
-        zone, easting, northing = GeogToUTM(GGA_lat[i], GGA_lon[i])
         zone_c, easting_c, northing_c = LatLonToUTM(GGA_lat[i], GGA_lon[i])
-#        print( ' * ' + GGA_lat[i]+' '+GGA_lon[i])
-#        print('    '+str(zone)+' '+str(easting)+' '+str(northing))
-#        print('    '+str(zone_c)+' '+str(easting_c)+' '+str(northing_c))
         fout.write(GGA_time[i]+','+GGA_lat[i]+','+GGA_lon[i]+','+GGA_quality[i]+','+GGA_num[i]+','+GGA_dop[i]+','+str(zone_c)+','+str(easting_c)+','+str(northing_c)+'\n')
     fout.close()
     
